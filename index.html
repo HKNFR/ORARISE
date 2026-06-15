@@ -280,8 +280,8 @@
       <div class="count">🌅&nbsp;Inscription en avant-première</div>
       <h2>Sois parmi les premiers à tester Orarise.</h2>
       <p>Laisse ton email et reçois une invitation dès l'ouverture. Aucun spam, juste le lancement.</p>
-      <form class="form" id="waitform" onsubmit="return joinWaitlist(event)">
-        <input type="email" id="email" placeholder="ton@email.fr" required>
+      <form class="form" id="waitform" action="https://formspree.io/f/mykaojrg" method="POST" onsubmit="return joinWaitlist(event)">
+        <input type="email" id="email" name="email" placeholder="ton@email.fr" required>
         <button type="submit">Je m'inscris</button>
       </form>
       <div class="success" id="success">✓ C'est noté ! On te préviendra dès que Orarise est prêt.</div>
@@ -302,9 +302,33 @@
     e.preventDefault();
     const email = document.getElementById('email').value.trim();
     if(!email) return false;
-    // In production, this would POST to your backend / form service (e.g. Brevo, Formspree).
-    document.getElementById('waitform').style.display = 'none';
-    document.getElementById('success').style.display = 'block';
+
+    const form = e.target;
+    const data = new FormData(form);
+    
+    fetch(form.action, {
+      method: form.method,
+      body: data,
+      headers: {
+          'Accept': 'application/json'
+      }
+    }).then(response => {
+      if (response.ok) {
+        document.getElementById('waitform').style.display = 'none';
+        document.getElementById('success').style.display = 'block';
+      } else {
+        response.json().then(data => {
+          if (Object.hasOwnProperty.call(data, 'errors')) {
+            alert(data["errors"].map(error => error["message"]).join(", "))
+          } else {
+            alert("Oops! There was a problem submitting your form")
+          }
+        })
+      }
+    }).catch(error => {
+      alert("Oops! There was a problem submitting your form")
+    });
+
     return false;
   }
 
